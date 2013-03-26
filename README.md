@@ -66,7 +66,7 @@ package ‘snow’ successfully unpacked and MD5 sums checked
 The downloaded binary packages are in
         C:\...\Temp\RtmpKOEu48\downloaded_packages
 ```
-6.	Run a quick test of snow from the R prompt:
+Then, run a quick test of snow from the R prompt:
 
 ```R
 library(snow)
@@ -75,7 +75,7 @@ clusterApply(cluster,1:100,get(“+”),3)
 stopCluster(cluster)
 ```
 
-**Note: It’s highly likely that the above example will first produce a Windows firewall warning to tell you that R has requested the ability to accept incoming network connections. Incoming network connections are required to use snow (which remains one of the simplest ways to do parallel processing in R, even for a single machine).**
+*Note: It’s highly likely that the above example will first produce a Windows firewall warning to tell you that R has requested the ability to accept incoming network connections. Incoming network connections are required to use snow (which remains one of the simplest ways to do parallel processing in R, even for a single machine).*
 
 ## Setting Up the Source Execution Environment
 
