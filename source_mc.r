@@ -69,7 +69,6 @@ calculate_metrics_across_files <- function(filenames,resultsName,stats_fn,rewrit
 	
 	metric_values = NULL
 	for(i in 1:length(filenames)) {
-#	  cat(paste("Loading results from: ",filenames[i],"\n"))
 	  resultsX = load_source_results(filenames[[i]],results_template)
 	  resultsX = add_date_elements(resultsX)
 	  

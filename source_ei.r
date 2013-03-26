@@ -135,7 +135,6 @@ run_source_parallel <- function(cluster,project_file,params,results_path,results
   num_runs = nrow(params)
   param_names <<- colnames(params)
   params_and_alloc = cbind(1:num_runs,rep(1:length(current_project_files[,1]),length.out=num_runs),params)
-#  end_point_alloc = rep(current_project_files[,1],length.out=num_runs)
   parameters_df = as.data.frame(t(params_and_alloc))
   clusterExport(cluster,"param_names")
   clusterExport(cluster,"current_project_files")
@@ -165,7 +164,6 @@ run_source_parallel <- function(cluster,project_file,params,results_path,results
 
 source_helper_cluster <- function(){
   cluster = makeCluster(rep("localhost",length(current_project_files[,1])),type="SOCK")
-#  clusterExport(cluster,"PATH")
   clusterCall(cluster,source,PATH)
   cluster
 }

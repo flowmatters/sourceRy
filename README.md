@@ -92,7 +92,7 @@ work_with(end_points)
 
 Notes:
 
-* If configure_for_source_version or start_source_server fail, it’s probably because Source is installed somewhere non-standard. You can replace call to configure_for_source_version with a call to configure_source. For example, if Source is installed on D-drive:
+* If configure_for_source_version or start_source_server fail, it’s probably because Source is installed somewhere non-standard. You can replace call to `configure_for_source_version` with a call to `configure_source`. For example, if Source is installed on D-drive:
 ```R
 configure_source(“D:\\Program Files\\eWater\\Source 3.0.7.31”)
 ```
