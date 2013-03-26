@@ -282,7 +282,7 @@ After the run, the results folder (in this case, C:\TEMP\Results\Climate) will c
 
 Feedback, suggestions and contributions are all very welcome!
 
-## Licencse
+## License
 
 The Source FEWS Adapter is licensed under the [LGPLv3]
 
