@@ -284,7 +284,7 @@ Feedback, suggestions and contributions are all very welcome!
 
 ## License
 
-The Source FEWS Adapter is licensed under the [LGPLv3]
+sourceRy is licensed under the [LGPLv3]
 
 [source]: http://www.ewater.com.au/products/ewater-source/
 [LGPLv3]: http://www.gnu.org/copyleft/lesser.html
