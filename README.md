@@ -10,29 +10,25 @@ R modules for managing [eWater Source][source] runs, including:
 
 ## Configuring the Source Model
 
-sourceRy runs Source using the Source External Interface (aka the Command Line Tool). The command line tool allows the modification of global expressions, which are configured by the user, and the retrieval of time-series results from global expressions as well as from other recorders. 
+sourceRy runs Source using the Source External Interface (aka the Command Line Tool). The command line tool allows the modification of simple functions, which are configured by the user, and the retrieval of time-series results from other functions as well or from other result recorders. 
 
-Using sourceRy requires configuring your Source model with appropriate global expressions, both for manipulating the model and for retrieving results for post-processing.
+Using sourceRy requires configuring your Source model with appropriate functions, both for manipulating the model and for retrieving results for post-processing.
 
-Refer to the Source user guide for more detail on the Expression Editor in general and Global Expressions in particular.
+Refer to the Source user guide for more detail on the Function Editor.
 
-### Configuring Global Expressions for Parameterisation
+### Configuring Source Functions for Parameterisation
 
-The external interface allows for setting the value of a global expression to a numeric value. For this to have an effect on the model, the global expression needs to be referenced in another expression, which is either directly attached to a model parameter, or is itself used in another global which is ultimately used in an expression attached to a parameter.
+The external interface allows for setting the value of a function to a numeric value. For this to have an effect on the model, the function needs to be referenced in another expression, which is either directly attached to a model parameter, or is itself used in another function which is ultimately used in a function attached to a parameter.
 
-Where the global expression is to map directly to an existing model parameter, the Metaparameter Explorer (in the Tools menu in Source) can be used to configure both the global expression and the parameter expression. The Metaparameter Explorer can be used to assign the same global expression to multiple parameters, allowing multiple parameters to be ‘locked’ together.
+### Configuring Functions for Outputs
 
-Refer to the Source user guide for more detail on the Metaparameter Explorer.
+Functions provide a convenient way to get output from Source, particularly in automation contexts such as sourceRy. Used in this way, functions offer:
 
-### Configuring Global Expressions for Outputs
-
-Global expressions provide a convenient way to get output from Source, particularly in automation contexts such as sourceRy. Used in this way, global expressions offer:
-
-* A simple, user defined text string to identify the right column in the output file (eg `$endofsystem`)
+* A simple, user defined label to identify the correct column in the output file (eg `$endofsystem`)
 * The ability to incorporate multiple model outputs into one prior to output (eg = `$endofsystem = $outflow1 + $outflow2 + $outflow3`)
-* The ability to keep the same output (and not have to change the logic in R) even when the underlying model evolves, by changing the formula of the global expressions (eg `$endofsystem = $outflow1 + $outflow2 + $outflow3 + $outflow4`)
+* The ability to keep the same output (and not have to change the logic in R) even when the underlying model evolves, by changing the formula of the function (eg `$endofsystem = $outflow1 + $outflow2 + $outflow3 + $outflow4` when another outflow is added)
 
-To create a global expression for output, open the expression editor, switch the global expressions tab and create a new global. In this global, configure local expression variables for accessing at least one other value from within the model (eg `$flowAtKeyNode = Gauge Node 5 / Downstream Flow / Volume`) and use this (or these) in the formula for the global (eg `$myglobal = $flowAtKeyNode`).
+To create a function for output, open the function editor and create a new function, naming it with a convenient label (eg `$ImportantOutput`). Then, create one or more _Modelled Variables_ (eg `$VolumeSupplied`) and map these to values from within the model. Then, set the formula for the custom output function to use the Modelled Variables (eg `$VolumeSupplied/$VolumeOrdered`).
 
 ### Other Setup Issues
 
@@ -43,7 +39,7 @@ sourceRy makes it relatively straight-forward to set up a great many Source runs
 
 ## Loading the R Module
 
-There are two main R source code files used in sourceRy: A generic 'source_ei' module for coordinating interaction with the Source external interface, and the 'source_mc' module which contains the core Monte-Carlo logic. In addition, there is a third file containing sample time series metrics that can be used in post-processing results ('example_flow_metrics'). All files can be loaded into an interactive R session using the source command (no relationship to eWater Source!).
+There are two main R source code files used in sourceRy: A generic `source_ei` module for coordinating interaction with the Source external interface, and the `source_mc` module which contains the core Monte-Carlo logic. In addition, the `Potions` directory contains useful custom scripts that demonstrate particular examples of SourceRy. `Potions` include a script of sample time series metrics that can be used in post-processing results (`example_flow_metrics`) and a template for Monte-Carlo runs that can be copied and modified (`mc_template`). All files can be loaded into an interactive R session using the source command (no relationship to eWater Source!).
 
 ```R
 source("C:\\TEMP\\source_ei.r")
@@ -99,7 +95,7 @@ configure_source(“D:\\Program Files\\eWater\\Source 3.0.7.31”)
 * As with R/snow earlier, you may get a Windows firewall warning here about RiverSystem.CommandLine needing to accept incoming network connections. This is necessary and carries the same warnings as for R/snow.
 * Once you’ve started the Source servers with start_source_servers, there is no way from within R to shut them down (at this point). You’ll need to do that from the Processes tab of Task Manager (Start|Run|taskmgr).
 * The number of servers you start should match the number of CPU cores you have available locally. For example, Intel i7s usually have 4 CPU cores (though some only have 2 and some have 6). If you have less servers than you have cores, then you won’t use all the available computing power. If you have more servers than cores, then you can lose performance from Windows trying to manage multiple jobs.
-* We use the server mode of RiverSystem.CommandLine in order to save the load time. With the server, we load the .rsproj file once onto each server and reuse it multiple times.
+* We use the server mode of RiverSystem.CommandLine in order to save the load time. With the server, we load the .rsproj file onto each server once and reuse it multiple times.
 * The `start_source_servers` function is a convenience for starting multiple instances of Source on one machine. You could run this function on multiple machines in order to distribute runs. At this stage you need to manually communicate the list of end-points back to the main machine which will be used to coordinate model runs.
 
 ### Create snow Cluster
@@ -113,15 +109,15 @@ cluster = source_helper_cluster()
 
 ## Deterministic and Stochastic Scenarios
 
-sourceRy is configured to run a series of deterministic scenarios (defined by sets of values for global expressions), with each scenario run for multiple replicates defined by sampling a different set of global expressions. Both the deterministic and the stochastic (monte-carlo) aspects of the scenarios are defined in R, with convenience functions provided for capturing this information is csv files and the like.
+sourceRy is configured to run a series of deterministic scenarios (defined by sets of values for parameters/functions), with each scenario run for multiple replicates defined by sampling a different set of parameters/functions. Both the deterministic and the stochastic (monte-carlo) aspects of the scenarios are defined in R, with convenience functions provided for capturing this information is csv files and the like.
 
 ## Defining the Monte-Carlo Parameters
 
 Sampling of stochastic parameters happens at runtime by calling a user defined sampling function. This sampling function should accept a single parameter, sample_size, through which will be passed the specified number of replicates required.
 
-The sampling function returns a matrix, with each column representing a sampling parameter and each row representing a replicate. The columns should carry the name of the corresponding global expression in the Source model.
+The sampling function should return a matrix, with each column representing a sampling parameter and each row representing a replicate. The columns should carry the name of the corresponding function in the Source model.
 
-The following example is for a single stochastic parameter, to be used with a Source model that defines a $PET_SCALE global expression.
+The following example is for a single stochastic parameter, to be used with a Source model that defines a $PET_SCALE function.
 ```R
 sample_evap <- function(sample_size){
 	PET_SCALE = pmax(rnorm(sample_size,mean=1,sd=0.2),0.0)

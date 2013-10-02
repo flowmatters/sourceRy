@@ -1,18 +1,27 @@
+# Monte-Carlo module for SourceRy
+#
+# Provides functions for specifying running classical monte-carlo simulations
+# over a Source model and to post process the results
+#
+# See https://github.com/flowmatters/sourceRy
 
 run_scenario <- function(cluster,results_base,scenario,all_scenarios,sample_parameters){
 	# construct parameter matrix (from sampled variables + )
 	scenario_path = paste(results_base,"\\Scenario",gsub("\\.","_",scenario),sep="")
 	dir.create(scenario_path,recursive=TRUE)
-	row = which(all_scenarios==scenario)
-	params = as.matrix(cbind(sample_parameters,all_scenarios[row,-1],row.names=NULL))
+	row = which(all_scenarios$Scenario==scenario)
+	params = as.matrix(cbind(sample_parameters,all_scenarios[row,-1],row.names=NULL))		
+	if(length(all_scenarios==2)) {
+		colnames(params) <- c(colnames(sample_parameters),colnames(all_scenarios)[2])
+	} 
 	run_source_parallel(cluster,project_file,params,scenario_path)
 }
 
-run_all_scenarios <- function(cluster,results_base,scenarios,sample_parameters,stats_fn) {
+run_all_scenarios <- function(cluster,results_base,results_name,scenarios,sample_parameters,stats_fn) {
 	metrics_list = list()
 	for(s in scenarios$Scenario) {
 		filenames = run_scenario(cluster,results_base,s,scenarios,sample_parameters)
-		metrics_list[[paste("Scenario_",s,sep="")]] = calculate_metrics_across_files(filenames,"outflow",stats_fn,rewrite_files=TRUE)	
+		metrics_list[[paste("Scenario_",s,sep="")]] = calculate_metrics_across_files(filenames,results_name,stats_fn,rewrite_files=TRUE)	
 	}
 	metrics_list
 }
@@ -25,14 +34,14 @@ regroup_by_metric <- function(scenario_results_list) {
 	}
 	by_metrics
 }
-
-regenerate_stats <- function(base_directory,stats_fn) {
+# "outflow"
+regenerate_stats <- function(base_directory,stats_fn,results_name) {
 	scenario_dirs = dir(base_directory,pattern="Scenario*")
 	metrics_list = list()
 	for(sd in scenario_dirs) {
 	    cat(paste("Calculating stats for",sd,"\n"))
 		fqd = paste(base_directory,sd,sep="\\")
-		metrics_list[[sd]] = calculate_metrics_across_files(dir(fqd,full.names=TRUE),"outflow",stats_fn,rewrite_files=FALSE)
+		metrics_list[[sd]] = calculate_metrics_across_files(dir(fqd,full.names=TRUE),results_name,stats_fn,rewrite_files=FALSE)
 	}
 
 	by_metric = regroup_by_metric(metrics_list)
@@ -54,10 +63,10 @@ box_plot_all_to_file <- function(metric_summaries,base_file) {
 	dev.off()
 }
 
-source_mc <- function(cluster,project,results_base,results_id,scenarios,sampler,nRuns,stats_fn){
+source_mc <- function(cluster,project,results_base,results_name,results_id,scenarios,sampler,nRuns,stats_fn){
 	project_file <<- project
 	results_dir = paste(results_base,results_id,sep="\\")
-	all_scenario_results = run_all_scenarios(cluster,results_dir,scenarios,sampler(nRuns),stats_fn)
+	all_scenario_results = run_all_scenarios(cluster,results_dir,results_name,scenarios,sampler(nRuns),stats_fn)
 	by_metric = regroup_by_metric(all_scenario_results)
 	box_plot_all_to_file(by_metric,paste(results_dir,"boxplot",sep="\\"))
 	all_scenario_results
@@ -107,4 +116,9 @@ configure_seasons <- function(filename){
 	seasonNames <<- levels(seasons$Season)	
 }
 
-configure_seasons(fn("seasons.csv"))
+default_seasons <- function() { 
+	fn = attr(attr(configure_seasons, 'srcref'), 'srcfile')$filename
+	configure_seasons(paste(dirname(fn),'Potions','default_seasons.csv',sep="/"))
+}
+
+default_seasons()

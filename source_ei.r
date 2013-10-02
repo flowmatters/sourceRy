@@ -1,3 +1,14 @@
+# Main module for the SourceRy package
+#
+# SourceRy supports the specification, execution and post processing of
+# many eWater-Source simulations.
+#
+# This module provide core functions for configuring access to Source, including
+# starting multiple Source servers, specifying run parameters, executing sets of runs
+# and post processing results.
+# 
+# See https://github.com/flowmatters/sourceRy
+
 library(snow)
 
 frame_files <- lapply(sys.frames(), function(x) x$ofile)
@@ -135,6 +146,7 @@ run_source_parallel <- function(cluster,project_file,params,results_path,results
   num_runs = nrow(params)
   param_names <<- colnames(params)
   params_and_alloc = cbind(1:num_runs,rep(1:length(current_project_files[,1]),length.out=num_runs),params)
+  colnames(params_and_alloc) <- c("RunNum","EndPointNum",param_names)
   parameters_df = as.data.frame(t(params_and_alloc))
   clusterExport(cluster,"param_names")
   clusterExport(cluster,"current_project_files")
@@ -155,7 +167,9 @@ run_source_parallel <- function(cluster,project_file,params,results_path,results
   leftovers = num_runs %% num_endpoints
   if( leftovers > 0 ) {
   cat(paste("Running", leftovers, "leftovers on cluster\n"))
-    leftover_results = clusterApply(cluster,parameters_df[,(num_runs-(leftovers-1)):num_runs],run_on_end_point,project_file,results_template,FALSE,results_path)
+  leftover_params = parameters_df[,(num_runs-(leftovers-1)):num_runs,drop = FALSE]
+  print(leftover_params)
+  leftover_results = clusterApply(cluster,leftover_params,run_on_end_point,project_file,results_template,FALSE,results_path)
     results = c(results,leftover_results)
 	current_project_files[1:leftovers,2] <<- rep(project_file,leftovers)
   }
