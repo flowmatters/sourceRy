@@ -30,7 +30,7 @@ source_project_fn="YieldExample.rsproj"
 scenario_fn="DiscreteScenarios.csv"
 
 # How many runs of each discrete scenario?
-sample_size=25
+sample_size=500
 
 # Select a version of Source. If Source isn't installed in the default location (C:\Program Files\eWater\Source x.y.z.w)
 # then use configure_source("full_path_to_source")
