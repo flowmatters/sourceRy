@@ -168,7 +168,6 @@ run_source_parallel <- function(cluster,project_file,params,results_path,results
   if( leftovers > 0 ) {
   cat(paste("Running", leftovers, "leftovers on cluster\n"))
   leftover_params = parameters_df[,(num_runs-(leftovers-1)):num_runs,drop = FALSE]
-  print(leftover_params)
   leftover_results = clusterApply(cluster,leftover_params,run_on_end_point,project_file,results_template,FALSE,results_path)
     results = c(results,leftover_results)
 	current_project_files[1:leftovers,2] <<- rep(project_file,leftovers)
